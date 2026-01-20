@@ -1,0 +1,5 @@
+streamlit
+tensorflow
+tensorflow-hub
+tensorflow-text
+numpy  # For tensor conversion
