@@ -1,23 +1,20 @@
 import streamlit as st
+from transformers import BertTokenizer, TFBertModel  # TF-based for compatibility
 import tensorflow as tf
-import tensorflow_hub as hub
-import tensorflow_text as text  # Required for BERT preprocessing
+import numpy as np
 
-# Load the preprocessor and encoder using the Hub URLs
-preprocessor_url = "https://tfhub.dev/tensorflow/bert_en_uncased_preprocess/3"
-encoder_url = "https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/3"
+# Load tokenizer and model (downloads ~420MB on first run)
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = TFBertModel.from_pretrained('bert-base-uncased')
 
-preprocessor = hub.KerasLayer(preprocessor_url)
-encoder = hub.KerasLayer(encoder_url)
-
-# Example inference function
+# Inference function
 def get_bert_embeddings(text_input):
-    inputs = preprocessor(tf.constant([text_input]))  # Preprocess text
-    outputs = encoder(inputs)  # Get embeddings
-    return outputs['pooled_output']  # Returns a tensor; convert to list for display
+    inputs = tokenizer(text_input, return_tensors='tf', truncation=True, padding=True, max_length=512)
+    outputs = model(**inputs)
+    return outputs.pooler_output  # Pooled embeddings (768 dims)
 
 # Streamlit app
-st.title("BERT Text Embedding Demo")
+st.title("BERT Text Embedding Demo (Hugging Face)")
 
 user_text = st.text_area("Enter text for embedding (e.g., a sentence or paragraph):", height=100)
 
@@ -25,10 +22,10 @@ if st.button("Generate Embeddings"):
     if user_text:
         with st.spinner("Processing with BERT..."):
             embeddings = get_bert_embeddings(user_text)
-            # Convert tensor to list for nicer display (first 10 dims for brevity)
+            # Convert to list (first 10 dims for display)
             embed_list = embeddings.numpy()[0][:10].tolist()
             st.write("Embeddings (first 10 dimensions shown):")
-            st.json(embed_list)  # Or st.write(embed_list) for simple list
+            st.json(embed_list)
             st.info(f"Full embedding shape: {embeddings.shape}")
     else:
         st.warning("Please enter some text.")
