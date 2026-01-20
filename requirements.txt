@@ -1,5 +1,5 @@
-streamlit
-tensorflow
-tensorflow-hub
-tensorflow-text
-numpy  # For tensor conversion
+streamlit==1.30.0
+tensorflow==2.15.0
+tensorflow-hub==0.16.1
+tensorflow-text==2.15.0
+numpy==1.26.4
